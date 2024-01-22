@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <cmath>
 
 using namespace std;
 
@@ -56,7 +57,7 @@ public:
         cin >> price;
 
         file << title << "," << ISBN << "," << author << "," << year << "," << quantity << "," << price << endl;
-        cout << "Book details written to file" << endl;
+        cout << "Book detail is written to file" << endl;
         file.close();
     }
 
@@ -70,7 +71,7 @@ public:
             cout << "Error with opening file" << endl;
         }
 
-        cout << "Enter the title of the book where you want to edit: " << endl;
+        cout << "Enter the title of the book that you want to change the price of: " << endl;
         string title;
         cin >> title;
 
@@ -79,19 +80,40 @@ public:
             //each line is an element in the vector. Element 1 is line 1, followed by line2 and so on
         }
         file.close();
-        for (const auto& row : lines){
+        for (auto& row : lines){
             if (row.find( title) != string::npos){
                 int comma = 0;
-                for(int i; i < row.length();i++){
-                    if(row[i] ==  *","){
+                for(int i = 0; i < row.length();i++){
+                    if(row[i] ==  ','){
                         comma += 1;
                         if(comma == 5){
-                            cout << row[i::] << endl;
+                            cout << "The current price of the book is " << row.substr(i+1) << " pounds" << endl;
+                            string current = row.substr(i+1);
+                            cout << "Enter the price you want to change it to:" << endl;
+                            string newprice;
+                            //newprice = round(newprice * 100) / 100;
+                            cin >> newprice;
+
+                            double currentPrice = stof(current);
+                            row.replace(i + 1, current.length(), newprice);
+
+                            ofstream writeFile;
+                            writeFile.open(Dir);
+
+                            if(writeFile.fail())
+                            {
+                                cout << "Error opening the file for writing" << endl;
+                            }
+
+                            int count = 0;
+                            for (const string &update:lines){
+                                writeFile << lines[count] << endl;
+                                count++;
+                            }
+                            cout << "The change is made" << endl;
                         }
                     }
-
                 }
-
             }
         }
     }
@@ -133,8 +155,8 @@ public:
 
     void deleteBook(){
        fstream file;
-       file.open(Dir);
        string line;
+       file.open(Dir);
        int count = 0;
 
        if (file.fail()){
@@ -148,17 +170,40 @@ public:
 
        file.close();
 
-       cout << "Enter the book you want to delete: " << endl;
+       cout << "Enter the book you want to remove: " << endl;
        string book;
        cin >> book;
 
-       for (const string &i:lines){
+       cout << "How many of " << book << " do you want to remove?" << endl;
+       int quan;
+       cin >> quan;
+
+       for (const string& l:lines){
            count += 1;
-           if(i.find(book) != string::npos){
-               lines.erase(lines.begin()+(count-1));
-               break;
+           if(l.find(book) != string::npos){
+               int comma = 0;
+               for(int i = 0; i < l.length(); i++) {
+                   if (l[i] == ',') {
+                       comma += 1;
+                       if(comma == 4){
+                           string current = l.substr(i+1);
+                           int intCurrent = stoi(current);
+                           if((intCurrent - quan) <= 0){
+                               lines.erase(lines.begin()+(count-1));
+                               break;
+                           }
+                           else{
+                               string strQuan = to_string(quan);
+                               l.replace(i + 1, current.length(), strQuan);
+                           }
+                           //cout << l[i+1] << endl;
+                       }
+                   }
+               }
+
            }
        }
+       cout << "Book is deleted from the inventory" << endl;
 
        ofstream writeFile;
        writeFile.open(Dir);
@@ -178,9 +223,23 @@ public:
 };
 int main() {
     System s1;
-    //s1.addBook();
-    //s1.checkAvailability();
-    s1.changePrice();
-    //s1.deleteBook();
+
+    cout << "What do you want to do?(type 1 to add a book, type 2 to check the availability of a book, type 3 to change"
+            " the price of a book, type 4 to delete a book in the inventory):" << endl;
+    int choice;
+    cin >> choice;
+
+    if(choice == 1){
+        s1.addBook();
+    }
+    else if(choice == 2){
+        s1.checkAvailability();
+    }
+    else if(choice == 3){
+        s1.changePrice();
+    }
+    else if(choice == 4){
+        s1.deleteBook();
+    }
     return 0;
 }
