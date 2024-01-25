@@ -2,7 +2,6 @@
 #include <string>
 #include <fstream>
 #include <vector>
-#include <cmath>
 
 using namespace std;
 
@@ -84,14 +83,15 @@ public:
             if (row.find( title) != string::npos){
                 int comma = 0;
                 for(int i = 0; i < row.length();i++){
-                    if(row[i] ==  ','){
+                    if(row[i] == ','){
                         comma += 1;
                         if(comma == 5){
                             cout << "The current price of the book is " << row.substr(i+1) << " pounds" << endl;
+
                             string current = row.substr(i+1);
+
                             cout << "Enter the price you want to change it to:" << endl;
                             string newprice;
-                            //newprice = round(newprice * 100) / 100;
                             cin >> newprice;
 
                             double currentPrice = stof(current);
@@ -110,7 +110,7 @@ public:
                                 writeFile << lines[count] << endl;
                                 count++;
                             }
-                            cout << "The change is made" << endl;
+                            cout << "The change of the price of the book has been updated" << endl;
                         }
                     }
                 }
@@ -129,7 +129,7 @@ public:
             cout << "Error with opening file" << endl;
         }
 
-        cout << "Enter the name of the book you want to look for: " << endl;
+        cout << "Enter the title of the book you want to look for: " << endl;
         string name;
         cin >> name;
 
@@ -164,6 +164,7 @@ public:
        }
 
        vector<string> lines;
+
        while (getline(file, line)){
            lines.push_back(line);
        }
@@ -174,11 +175,11 @@ public:
        string book;
        cin >> book;
 
-       cout << "How many of " << book << " do you want to remove?" << endl;
+       cout << "How many of " << book << " book do you want to remove?" << endl;
        int quan;
        cin >> quan;
 
-       for (const string& l:lines){
+       for (string& l:lines){
            count += 1;
            if(l.find(book) != string::npos){
                int comma = 0;
@@ -190,11 +191,13 @@ public:
                            int intCurrent = stoi(current);
                            if((intCurrent - quan) <= 0){
                                lines.erase(lines.begin()+(count-1));
+                               cout << "The book is deleted" << endl;
                                break;
                            }
                            else{
-                               string strQuan = to_string(quan);
-                               l.replace(i + 1, current.length(), strQuan);
+                               string LeftInInventory = to_string(intCurrent - quan);
+                               l.replace(i + 1, 1, LeftInInventory);
+                               break;
                            }
                            //cout << l[i+1] << endl;
                        }
@@ -203,7 +206,6 @@ public:
 
            }
        }
-       cout << "Book is deleted from the inventory" << endl;
 
        ofstream writeFile;
        writeFile.open(Dir);
@@ -225,7 +227,7 @@ int main() {
     System s1;
 
     cout << "What do you want to do?(type 1 to add a book, type 2 to check the availability of a book, type 3 to change"
-            " the price of a book, type 4 to delete a book in the inventory):" << endl;
+            " the price of a book, type 4 to remove books in the inventory):" << endl;
     int choice;
     cin >> choice;
 
