@@ -1,5 +1,5 @@
 #include <iostream>
-#include <cstring>
+#include <string>
 #include <fstream>
 #include <vector>
 
@@ -39,7 +39,6 @@ private:
     string Year;
     string Quantity;
     string Price;
-    bool exist;
 
 public:
     addBook(){
@@ -78,58 +77,13 @@ public:
         Price = price;
     }
 
-    void ifExist(){
-        vector<string> lines;
-        string line;
-        ifstream file;
-        file.open(Dir);
-
-        if (file.fail()) {
-            cout << "Error with opening file" << endl;
-        }
-
-        while (getline(file, line)) {
-            lines.push_back(line);
-            //each line is an element in the vector. Element 1 is line 1, followed by line2 and so on
-        }
-        file.close();
-
-        for (string &row: lines) {
-            if (row.find(Title) != string::npos) {
-                exist = true;
-
-            }
-        }
-    }
-
     void addToCSV(){
-        //opens CSV file in read mode and store all lines in a vector
-        vector<string> lines;
-        string line;
-        ifstream readFile;
-        readFile.open(Dir);
-
-        //check if the file failed to open
-        if (readFile.fail()) {
-            cout << "Error with opening file" << endl;
-        }
-        while (getline(readFile, line)) {
-            lines.push_back(line);
-            //each line is an element in the vector. Element 1 is line 1, followed by line2 and so on
-        }
-        readFile.close();
-
         //open file in append mode
         ofstream file;
         file.open(Dir, ios::app);
 
-        if (exist){
-            cout << "The book was already in the inventory" << endl;
-        }
-        else{
-            file << Title << "," << ISBN << "," << Author << "," << Year << "," << Quantity << "," << Price << endl;
-            cout << "Book detail is written to file" << endl;
-        }
+        file << Title << "," << ISBN << "," << Author << "," << Year << "," << Quantity << "," << Price << endl;
+        cout << "Book detail is written to file" << endl;
         file.close();
     }
 };
@@ -148,7 +102,7 @@ public:
 
     }
 
-    void getPrice() {
+    void getBook() {
         cout << "Enter the title of the book you want to change the price of: " << endl;
         string title;
         cin >> title;
@@ -190,7 +144,6 @@ public:
         }
     }
 
-
     void setPrice(){
         vector<string> lines;
         string line;
@@ -214,7 +167,6 @@ public:
                     if(row[i] == ','){
                         comma += 1;
                         if(comma == 5){
-                            cout << "The current price of the book is " << row.substr(i+1) << " pounds" << endl;
 
                             string current = row.substr(i+1);
 
@@ -384,39 +336,50 @@ public:
 
 
 int main() {
-    cout << "What do you want to do?(type 1 to add a book, type 2 to check the availability of a book, type 3 to change"
-            " the price of a book, type 4 to remove books in the inventory):" << endl;
-    int choice;
-    //addBook newObject;
-    cin >> choice;
+    while (true){
+        cout << "What do you want to do?(type 1 to add a book, type 2 to check the availability of a book, type 3 to change"
+                " the price of a book, type 4 to remove books in the inventory):" << endl;
+        int choice;
+        //addBook newObject;
+        cin >> choice;
 
-    System s1;
-    s1.setChoice(choice);
-    choice = s1.getChoice();
+        System s1;
+        s1.setChoice(choice);
+        choice = s1.getChoice();
 
-    if (choice == 1) {
-        addBook add;
-        add.detail();
-        add.addToCSV();
+        if (choice == 1) {
+            addBook add;
+            add.detail();
+            add.addToCSV();
+        }
+
+        else if(choice == 3){
+            changePrice c1;
+            c1.getBook();
+            c1.setPrice();
+        }
+
+        else if(choice == 2){
+            checkAvailability check1;
+            check1.detail();
+            check1.findBook();
+        }
+
+        else if(choice == 4){
+            deleteBook d1;
+            d1.detail();
+            d1.deleteFromCSV();
+        }
+
+        cout << "Is there anything else you want to do?(enter Y for yes or N for no)" << endl;
+        string again;
+        cin >> again;
+        if(again == "Y"){
+            continue;
+        }
+        else if(again == "N"){
+            break;
+        }
     }
-
-    else if(choice == 3){
-        changePrice c1;
-        c1.getPrice();
-        c1.setPrice();
-    }
-
-    else if(choice == 2){
-        checkAvailability check1;
-        check1.detail();
-        check1.findBook();
-    }
-
-    else if(choice == 4){
-        deleteBook d1;
-        d1.detail();
-        d1.deleteFromCSV();
-    }
-
     return 0;
 }
