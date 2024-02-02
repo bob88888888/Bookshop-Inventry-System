@@ -1,12 +1,12 @@
 #include <iostream>
-#include <string>
+#include <cstring>
 #include <fstream>
 #include <vector>
 
 using namespace std;
 
 class System {
-public:
+protected:
     string Dir;
     int choice;
 
@@ -16,8 +16,16 @@ public:
         choice=0;
     }
 
-    System(int choice) {
+    void setChoice(int choice) {
         this->choice = choice;
+    }
+
+    int getChoice(){
+        return choice;
+    }
+
+    virtual void detail(){
+        cout << "Enter detail of the book" << endl;
     }
 
 };
@@ -31,42 +39,67 @@ private:
     string Year;
     string Quantity;
     string Price;
+    bool exist;
 
 public:
     addBook(){
         Title="";
     }
 
-    void bookDetail(){
+    void detail(){
         cout << "What is the title of the book?" << endl;
         string title;
         cin >> title;
-        this->Title = title;
+        Title = title;
 
         cout << "What is the ISBN of the book?" << endl;
         string isbn;
         cin >> isbn;
-        this->ISBN = isbn;
+        ISBN = isbn;
 
         cout << "Who is the author of the book?" << endl;
         string author;
         cin >> author;
-        this->Author = author;
+        Author = author;
 
         cout << "What year is the book published?" << endl;
         string year;
         cin >> year;
-        this->Year = year;
+        Year = year;
 
         cout << "How many of these book you would like to add to the inventory?" << endl;
         string quantity;
         cin >> quantity;
-        this->Quantity = quantity;
+        Quantity = quantity;
 
         cout << "What is the price of the book?" << endl;
         string price;
         cin >> price;
-        this->Price = price;
+        Price = price;
+    }
+
+    void ifExist(){
+        vector<string> lines;
+        string line;
+        ifstream file;
+        file.open(Dir);
+
+        if (file.fail()) {
+            cout << "Error with opening file" << endl;
+        }
+
+        while (getline(file, line)) {
+            lines.push_back(line);
+            //each line is an element in the vector. Element 1 is line 1, followed by line2 and so on
+        }
+        file.close();
+
+        for (string &row: lines) {
+            if (row.find(Title) != string::npos) {
+                exist = true;
+
+            }
+        }
     }
 
     void addToCSV(){
@@ -90,8 +123,13 @@ public:
         ofstream file;
         file.open(Dir, ios::app);
 
-        file << this->Title << "," << this->ISBN << "," << this->Author << "," << this->Year << "," << this->Quantity << "," << this->Price << endl;
-        cout << "Book detail is written to file" << endl;
+        if (exist){
+            cout << "The book was already in the inventory" << endl;
+        }
+        else{
+            file << Title << "," << ISBN << "," << Author << "," << Year << "," << Quantity << "," << Price << endl;
+            cout << "Book detail is written to file" << endl;
+        }
         file.close();
     }
 };
@@ -114,12 +152,12 @@ public:
         cout << "Enter the title of the book you want to change the price of: " << endl;
         string title;
         cin >> title;
-        this->Title = title;
+        Title = title;
 
         vector<string> lines;
         string line;
         ifstream file;
-        file.open(dir);
+        file.open(Dir);
 
         if (file.fail()) {
             cout << "Error with opening file" << endl;
@@ -132,7 +170,7 @@ public:
 
         bool showed = false;
         for (string &row: lines) {
-            if (row.find(title) != string::npos) {
+            if (row.find(Title) != string::npos) {
                 int comma = 0;
                 for (int i = 0; i < row.length(); i++) {
                     if (row[i] == ',' && !showed) {
@@ -145,7 +183,7 @@ public:
                     }
                 }
             }
-                //stops program from running the print statement again if statement is printed once
+            //stops program from running the print statement again if statement is printed once
             else{
                 break;
             }
@@ -154,11 +192,10 @@ public:
 
 
     void setPrice(){
-        string title = this->Title;
         vector<string> lines;
         string line;
         ifstream file;
-        file.open(dir);
+        file.open(Dir);
 
         if (file.fail()) {
             cout << "Error with opening file" << endl;
@@ -171,7 +208,7 @@ public:
         file.close();
 
         for (string& row : lines){
-            if (row.find(title) != string::npos){
+            if (row.find(Title) != string::npos){
                 int comma = 0;
                 for(int i = 0; i < row.length();i++){
                     if(row[i] == ','){
@@ -221,7 +258,7 @@ public:
         found = false;
     }
 
-    void setTitle(){
+    void detail(){
         cout << "Enter the title of the book you want to look for: " << endl;
         string title;
         cin >> title;
@@ -271,7 +308,7 @@ public:
 
     }
 
-    void titleNQuantity(){
+    void Detail(){
         cout << "Enter the book you want to remove: " << endl;
         string book;
         cin >> book;
@@ -353,29 +390,31 @@ int main() {
     //addBook newObject;
     cin >> choice;
 
-    System s1(choice);
+    System s1;
+    s1.setChoice(choice);
+    choice = s1.getChoice();
 
-    if (s1.choice == 1) {
+    if (choice == 1) {
         addBook add;
-        add.bookDetail();
+        add.detail();
         add.addToCSV();
     }
 
-    else if(s1.choice == 2){
+    else if(choice == 3){
         changePrice c1;
         c1.getPrice();
         c1.setPrice();
     }
 
-    else if(s1.choice == 3){
+    else if(choice == 2){
         checkAvailability check1;
-        check1.setTitle();
+        check1.detail();
         check1.findBook();
     }
 
-    else if(s1.choice == 4){
+    else if(choice == 4){
         deleteBook d1;
-        d1.titleNQuantity();
+        d1.detail();
         d1.deleteFromCSV();
     }
 
