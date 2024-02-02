@@ -39,13 +39,15 @@ private:
     string Year;
     string Quantity;
     string Price;
+    bool exist;
 
 public:
     addBook(){
         Title="";
+        exist = false;
     }
 
-    void detail(){
+    void detail() override{
         cout << "What is the title of the book?" << endl;
         string title;
         cin >> title;
@@ -77,14 +79,33 @@ public:
         Price = price;
     }
 
-    void addToCSV(){
-        //open file in append mode
-        ofstream file;
-        file.open(Dir, ios::app);
+    void bookExist(){
+        ifstream file(Dir);
+        string line;
 
-        file << Title << "," << ISBN << "," << Author << "," << Year << "," << Quantity << "," << Price << endl;
-        cout << "Book detail is written to file" << endl;
+        while (getline(file, line)){
+            if (line.find(Title) && line.find(ISBN)){
+                file.close();
+                exist = true;
+
+            }
+        }
         file.close();
+    }
+
+    void addToCSV(){
+        if (exist) {
+            cout << "Error: The book with title '" << Title << "' already exists in the inventory." << endl;
+        }
+        else {
+            //open file in append mode
+            ofstream file;
+            file.open(Dir, ios::app);
+
+            file << Title << "," << ISBN << "," << Author << "," << Year << "," << Quantity << "," << Price << endl;
+            cout << "Book detail is written to file" << endl;
+            file.close();
+        }
     }
 };
 
@@ -93,16 +114,20 @@ private:
     string Price;
     string Title;
     string dir;
+    bool find;
+    bool showed;
 
 public:
     changePrice() {
         Price = "£0";
         Title = "";
         dir = this->Dir;
+        find = false;
+        showed = false;
 
     }
 
-    void getBook() {
+    void detail() override {
         cout << "Enter the title of the book you want to change the price of: " << endl;
         string title;
         cin >> title;
@@ -122,9 +147,9 @@ public:
         }
         file.close();
 
-        bool showed = false;
         for (string &row: lines) {
             if (row.find(Title) != string::npos) {
+                find = true;
                 int comma = 0;
                 for (int i = 0; i < row.length(); i++) {
                     if (row[i] == ',' && !showed) {
@@ -132,65 +157,69 @@ public:
                         if (comma == 5) {
                             cout << "The current price of the book is " << row.substr(i + 1) << " pounds" << endl;
                             showed = true;
-
                         }
                     }
                 }
             }
             //stops program from running the print statement again if statement is printed once
-            else{
+            if (showed){
                 break;
             }
         }
     }
 
     void setPrice(){
-        vector<string> lines;
-        string line;
-        ifstream file;
-        file.open(Dir);
-
-        if (file.fail()) {
-            cout << "Error with opening file" << endl;
+        if (!find){
+            cout << "The book is not in the inventory" << endl;
         }
+        else{
+            vector<string> lines;
+            string line;
+            ifstream file;
+            file.open(Dir);
 
-        while (getline(file, line)) {
-            lines.push_back(line);
-            //each line is an element in the vector. Element 1 is line 1, followed by line2 and so on
-        }
-        file.close();
+            if (file.fail()) {
+                cout << "Error with opening file" << endl;
+            }
 
-        for (string& row : lines){
-            if (row.find(Title) != string::npos){
-                int comma = 0;
-                for(int i = 0; i < row.length();i++){
-                    if(row[i] == ','){
-                        comma += 1;
-                        if(comma == 5){
+            while (getline(file, line)) {
+                lines.push_back(line);
+                //each line is an element in the vector. Element 1 is line 1, followed by line2 and so on
+            }
+            file.close();
 
-                            string current = row.substr(i+1);
+            for (string& row : lines){
+                if (row.find(Title) != string::npos){
+                    int comma = 0;
+                    for(int i = 0; i < row.length();i++){
+                        if(row[i] == ','){
+                            comma += 1;
+                            if(comma == 5){
 
-                            cout << "Enter the price you want to change it to:" << endl;
-                            string newprice;
-                            cin >> newprice;
+                                string current = row.substr(i+1);
 
-                            double currentPrice = stof(current);
-                            row.replace(i + 1, current.length(), newprice);
+                                cout << "Enter the price you want to change it to:" << endl;
+                                string newprice;
+                                cin >> newprice;
 
-                            ofstream writeFile;
-                            writeFile.open(Dir);
+                                double currentPrice = stof(current);
+                                row.replace(i + 1, current.length(), newprice);
 
-                            if(writeFile.fail())
-                            {
-                                cout << "Error opening the file for writing" << endl;
+                                ofstream writeFile;
+                                writeFile.open(Dir);
+
+                                if(writeFile.fail())
+                                {
+                                    cout << "Error opening the file for writing" << endl;
+                                }
+
+                                int count = 0;
+                                for (const string &update:lines){
+                                    writeFile << lines[count] << endl;
+                                    count++;
+                                }
+                                cout << "The change of the price of the book has been updated" << endl;
                             }
-
-                            int count = 0;
-                            for (const string &update:lines){
-                                writeFile << lines[count] << endl;
-                                count++;
-                            }
-                            cout << "The change of the price of the book has been updated" << endl;
                         }
                     }
                 }
@@ -210,7 +239,7 @@ public:
         found = false;
     }
 
-    void detail(){
+    void detail() override{
         cout << "Enter the title of the book you want to look for: " << endl;
         string title;
         cin >> title;
@@ -260,7 +289,7 @@ public:
 
     }
 
-    void Detail(){
+    void detail() override{
         cout << "Enter the book you want to remove: " << endl;
         string book;
         cin >> book;
@@ -350,12 +379,13 @@ int main() {
         if (choice == 1) {
             addBook add;
             add.detail();
+            add.bookExist();
             add.addToCSV();
         }
 
         else if(choice == 3){
             changePrice c1;
-            c1.getBook();
+            c1.detail();
             c1.setPrice();
         }
 
